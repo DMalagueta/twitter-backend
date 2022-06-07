@@ -1,32 +1,34 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersController } from './users/users.controller';
 import { PostsController } from './posts/posts.controller';
 import { HashtagsController } from './hashtags/hashtags.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from './users/users.entity';
 import { PostEntity } from './posts/posts.entity';
+import { UsersModule } from './users/users.module';
+import { join } from 'path';
+import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      username: 'root',
-      password: 'root',
+      username: 'diogo',
+      password: '12345',
       database: 'talkline',
       synchronize: true,
       logger: 'advanced-console',
       logging: 'all',
       entities: [UserEntity, PostEntity],
+      /* entities: [join(__dirname, '..', '**', '*.entity.js')],  */
+      autoLoadEntities: true,
     }),
+    UsersModule,
   ],
-  controllers: [
-    AppController,
-    UsersController,
-    PostsController,
-    HashtagsController,
-  ],
+  controllers: [AppController, PostsController, HashtagsController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule {
+  constructor(private dataSource: DataSource) {}
+}
