@@ -1,5 +1,6 @@
-import { Entity, Column, OneToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
 import { TalkLineEntity } from 'src/commons/base.entity';
+import { UserEntity } from 'src/users/users.entity';
 
 @Entity('posts')
 export class PostEntity extends TalkLineEntity {
@@ -8,6 +9,10 @@ export class PostEntity extends TalkLineEntity {
 
   @Column('json', { default: [] })
   images: Array<string>;
+
+  @ManyToOne(() => UserEntity)
+  @JoinColumn({ name: 'author_id' })
+  author: UserEntity;
 
   @Column({ name: 'like_count', default: 0 })
   likeCount: number;
