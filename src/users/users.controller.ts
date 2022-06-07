@@ -6,9 +6,19 @@ import {
   Req,
   Patch,
   NotFoundException,
+  Body,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
+import { UserEntity } from './users.entity';
 import { UsersService } from './users.service';
+
+export class UserCreateRequestBody {
+  @ApiProperty() username: string;
+  @ApiProperty() password: string;
+  @ApiPropertyOptional() name?: string;
+  @ApiPropertyOptional() avatar?: string;
+  @ApiPropertyOptional() bio?: string;
+}
 
 @ApiTags('users')
 @Controller('users')
@@ -16,7 +26,9 @@ export class UsersController {
   constructor(private userService: UsersService) {}
 
   @Get('/@:username')
-  async getUserByUsername(@Param('username') username: string): Promise<any> {
+  async getUserByUsername(
+    @Param('username') username: string,
+  ): Promise<UserEntity> {
     const user = await this.userService.getUserByUsername(username);
     if (!user) {
       throw new NotFoundException(`User ${username} not found`);
@@ -25,8 +37,12 @@ export class UsersController {
   }
 
   @Get('/:userid')
-  getUserByUserid(@Param('userid') userid: string): string {
-    return `${userid}`;
+  async getUserByUserid(@Param('userid') userid: string): Promise<UserEntity> {
+    const user = await this.userService.getUserById(userid);
+    if (!user) {
+      throw new NotFoundException(`User ${userid} not found`);
+    }
+    return user;
   }
 
   @Get('/:userid/followers')
@@ -35,8 +51,11 @@ export class UsersController {
   }
 
   @Post('/')
-  createUser(): string {
-    return 'create user';
+  async createUser(
+    @Body() createUserRequest: UserCreateRequestBody,
+  ): Promise<UserEntity> {
+    const user = await this.userService.createUser(createUserRequest);
+    return user;
   }
 
   @Patch('/:userid')

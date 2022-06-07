@@ -10,7 +10,18 @@ export class UsersService {
     private usersRepository: Repository<UserEntity>,
   ) {}
 
+  /* FIND USER BY NAME */
   public async getUserByUsername(username: string): Promise<UserEntity> {
     return await this.usersRepository.findOne({ where: { username } });
+  }
+
+  /* FIND USER BY ID */
+  public async getUserById(userId: string): Promise<UserEntity> {
+    return await this.usersRepository.findOne({ where: { id: userId } });
+  }
+
+  /* CREATE USER */
+  public async createUser(user: Partial<UserEntity>): Promise<UserEntity> {
+    return await this.usersRepository.save(user);
   }
 }
