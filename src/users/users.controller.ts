@@ -65,6 +65,7 @@ export class UsersController {
     return user;
   }
 
+  //TODO: MAKE SURE USER IS AUTH
   @Patch('/:userid')
   async updateUserDetails(
     @Param('userid') userid: string,
