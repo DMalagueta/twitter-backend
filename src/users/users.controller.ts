@@ -20,6 +20,13 @@ export class UserCreateRequestBody {
   @ApiPropertyOptional() bio?: string;
 }
 
+export class UserUpdateRequestBody {
+  @ApiProperty() password: string;
+  @ApiPropertyOptional() name?: string;
+  @ApiPropertyOptional() avatar?: string;
+  @ApiPropertyOptional() bio?: string;
+}
+
 @ApiTags('users')
 @Controller('users')
 export class UsersController {
@@ -59,8 +66,12 @@ export class UsersController {
   }
 
   @Patch('/:userid')
-  updateUserDetails(@Param('userid') userid: string): string {
-    return `updated ${userid}`;
+  async updateUserDetails(
+    @Param('userid') userid: string,
+    @Body() updateUserRequest: UserUpdateRequestBody,
+  ): Promise<UserEntity> {
+    const user = await this.userService.updateUser(userid, updateUserRequest);
+    return user;
   }
 
   @Post('/signin')
