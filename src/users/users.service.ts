@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AuthService } from 'src/auth/auth.service';
+import { PasswordEntity } from 'src/auth/passwords.entity';
 import { Repository } from 'typeorm';
 import { UserEntity } from './users.entity';
 
@@ -8,6 +10,7 @@ export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private usersRepository: Repository<UserEntity>,
+    private authService: AuthService,
   ) {}
 
   /* FIND USER BY NAME */
@@ -21,8 +24,15 @@ export class UsersService {
   }
 
   /* CREATE USER */
-  public async createUser(user: Partial<UserEntity>): Promise<UserEntity> {
-    return await this.usersRepository.save(user);
+  public async createUser(
+    user: Partial<UserEntity>,
+    password: string,
+  ): Promise<UserEntity> {
+    const newUser = await this.usersRepository.save(user);
+
+    await this.authService.createPasswordForNewUser(newUser.id, password);
+
+    return newUser;
   }
 
   /* UPDATE USER */

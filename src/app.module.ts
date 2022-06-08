@@ -11,6 +11,8 @@ import { join } from 'path';
 import { DataSource } from 'typeorm';
 import { PostsModule } from './posts/posts.module';
 import { HashtagsModule } from './hashtags/hashtags.module';
+import { AuthModule } from './auth/auth.module';
+import { PasswordEntity } from './auth/passwords.entity';
 
 @Module({
   imports: [
@@ -22,13 +24,14 @@ import { HashtagsModule } from './hashtags/hashtags.module';
       synchronize: true,
       logger: 'advanced-console',
       logging: 'all',
-      entities: [UserEntity, PostEntity],
+      entities: [UserEntity, PostEntity, PasswordEntity],
       /* entities: [join(__dirname, '..', '**', '*.entity.js')],  */
       autoLoadEntities: true,
     }),
     UsersModule,
     PostsModule,
     HashtagsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

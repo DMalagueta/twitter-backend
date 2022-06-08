@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToOne } from 'typeorm';
 import { TalkLineEntity } from 'src/commons/base.entity';
+import { PasswordEntity } from 'src/auth/passwords.entity';
 
 @Entity('users')
 export class UserEntity extends TalkLineEntity {
@@ -26,4 +27,10 @@ export class UserEntity extends TalkLineEntity {
 
   @Column('boolean', { default: false })
   verified: boolean;
+
+  @OneToOne((type) => PasswordEntity, (password) => password.user, {
+    lazy: true,
+    cascade: true,
+  })
+  userPassword: PasswordEntity;
 }
