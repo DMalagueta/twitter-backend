@@ -9,6 +9,8 @@ import { PostEntity } from './posts/posts.entity';
 import { UsersModule } from './users/users.module';
 import { join } from 'path';
 import { DataSource } from 'typeorm';
+import { PostsModule } from './posts/posts.module';
+import { HashtagsModule } from './hashtags/hashtags.module';
 
 @Module({
   imports: [
@@ -25,8 +27,10 @@ import { DataSource } from 'typeorm';
       autoLoadEntities: true,
     }),
     UsersModule,
+    PostsModule,
+    HashtagsModule,
   ],
-  controllers: [AppController, PostsController, HashtagsController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {
