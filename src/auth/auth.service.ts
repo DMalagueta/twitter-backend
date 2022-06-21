@@ -1,14 +1,25 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcrypt';
+import { UserEntity } from 'src/users/users.entity';
+import { UsersRepository } from 'src/users/users.repository';
 import { Repository } from 'typeorm';
 import { PasswordEntity } from './passwords.entity';
+import { SessionsEntity } from './sessions.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(UserEntity)
+    private userRepository: UsersRepository,
     @InjectRepository(PasswordEntity)
     private passwordRepository: Repository<PasswordEntity>,
+    @InjectRepository(SessionsEntity)
+    private sessionRepository: Repository<SessionsEntity>,
   ) {}
 
   public static PASSWORD_SALT_ROUNDS = 10;
@@ -40,5 +51,41 @@ export class AuthService {
     hash: string,
   ): Promise<boolean> {
     return (await compare(password, hash)) === true;
+  }
+
+  async createNewSession(username: string, password: string) {
+    const user = await this.userRepository.findOne({ where: { username } });
+
+    if (!user) {
+      throw new NotFoundException('Invalid user');
+    }
+
+    const userPassword = await this.passwordRepository.findOne({
+      where: { userId: user.id },
+    });
+
+    const passMatch = await this.matchPassHash(password, userPassword.password);
+
+    if (!passMatch) {
+      throw new UnauthorizedException('Invalid password');
+    }
+    const session = new SessionsEntity();
+    session.userId = userPassword.userId;
+    const savedSession = await this.sessionRepository.save(session);
+    return savedSession;
+  }
+
+  async getUserFromSessionToken(token: string): Promise<UserEntity> {
+    const session = await this.sessionRepository.findOne({
+      where: { id: token },
+    });
+    if (!session) {
+      throw new NotFoundException('Invalid session');
+    }
+    const user = await session.user;
+    if (!user) {
+      throw new UnauthorizedException('Invalid user');
+    }
+    return user;
   }
 }
