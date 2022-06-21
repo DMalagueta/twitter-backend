@@ -10,6 +10,7 @@ import { PostsModule } from './posts/posts.module';
 import { HashtagsModule } from './hashtags/hashtags.module';
 import { AuthModule } from './auth/auth.module';
 import { PasswordEntity } from './auth/passwords.entity';
+import { LikesModule } from './likes/likes.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { PasswordEntity } from './auth/passwords.entity';
     PostsModule,
     HashtagsModule,
     AuthModule,
+    LikesModule,
   ],
   controllers: [AppController],
   providers: [AppService],
