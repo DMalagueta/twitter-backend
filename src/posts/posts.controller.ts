@@ -1,6 +1,5 @@
-import { Delete, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Delete, Param, Post, Put, Req } from '@nestjs/common';
 import { Controller, Get } from '@nestjs/common';
-import { RequiredAuthGuard } from 'src/auth/auth.guard';
 import { PostEntity } from './posts.entity';
 import { PostsService } from './posts.service';
 
@@ -51,7 +50,6 @@ export class PostsController {
     return deletedPost;
   }
 
-  @UseGuards(RequiredAuthGuard)
   @Put('/:postid/like')
   async likePost(@Param('postid') postid: string, @Req() req) {
     const token = (req.headers.authorization as string).replace('Bearer ', '');
@@ -62,7 +60,6 @@ export class PostsController {
     return likedPost;
   }
 
-  @UseGuards(RequiredAuthGuard)
   @Delete('/:postid/like')
   async unlikePost(@Param('postid') postid: string, @Req() req) {
     const token = (req.headers.authorization as string).replace('Bearer ', '');
