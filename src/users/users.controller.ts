@@ -4,36 +4,19 @@ import {
   ForbiddenException,
   NotFoundException,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import { Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiProperty,
-  ApiPropertyOptional,
-  ApiTags,
-} from '@nestjs/swagger';
 import { User } from 'src/auth/auth.decorator';
-import { RequiredAuthGuard } from 'src/auth/auth.guard';
 import { UserEntity } from './users.entity';
 import { UsersService } from './users.service';
 
-class UserCreateRequestBody {
-  @ApiProperty() username: string;
-  @ApiProperty() password: string;
-  @ApiPropertyOptional() name?: string;
-  @ApiPropertyOptional() avatar?: string;
-  @ApiPropertyOptional() bio?: string;
-}
-
 class UserUpdateRequestBody {
-  @ApiPropertyOptional() password?: string;
-  @ApiPropertyOptional() name?: string;
-  @ApiPropertyOptional() avatar?: string;
-  @ApiPropertyOptional() bio?: string;
+  password?: string;
+  name?: string;
+  avatar?: string;
+  bio?: string;
 }
 
-@ApiTags('users')
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
@@ -65,7 +48,6 @@ export class UsersController {
     return user;
   }
 
-  @ApiBearerAuth()
   @Patch('/:userid')
   async updateUserDetails(
     @User() authdUser: UserEntity,
@@ -79,7 +61,6 @@ export class UsersController {
     return user;
   }
 
-  @ApiBearerAuth()
   @Put('/:userid/follow')
   async followUser(
     @User() follower: UserEntity,
@@ -92,7 +73,6 @@ export class UsersController {
     return followedUser;
   }
 
-  @ApiBearerAuth()
   @Delete('/:userid/follow')
   async unfollowUser(
     @User() follower: UserEntity,
@@ -105,13 +85,11 @@ export class UsersController {
     return unfollowedUser;
   }
 
-  @ApiBearerAuth()
   @Get('/:userid/followers')
   async getFollowersOfUser(): Promise<UserEntity[]> {
     return [];
   }
 
-  @ApiBearerAuth()
   @Put('/:userid/followees')
   async getFolloweesOfUser(): Promise<UserEntity[]> {
     return [];

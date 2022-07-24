@@ -28,7 +28,7 @@ export class UserEntity extends TalkLineEntity {
   @Column('boolean', { default: false })
   verified: boolean;
 
-  @OneToOne((type) => PasswordEntity, (password) => password.user, {
+  @OneToOne(() => PasswordEntity, (password) => password.user, {
     lazy: true,
     cascade: true,
   })

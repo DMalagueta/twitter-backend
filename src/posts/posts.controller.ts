@@ -1,25 +1,9 @@
-import {
-  Body,
-  Delete,
-  Param,
-  Post,
-  Put,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Delete, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { Controller, Get } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiProperty,
-  ApiPropertyOptional,
-  ApiTags,
-} from '@nestjs/swagger';
 import { RequiredAuthGuard } from 'src/auth/auth.guard';
 import { PostEntity } from './posts.entity';
 import { PostsService } from './posts.service';
 
-@ApiTags('posts')
 @Controller('posts')
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
@@ -35,7 +19,6 @@ export class PostsController {
     return await this.postsService.getUserPosts(userId.userId);
   }
 
-  @ApiBearerAuth()
   @Post('/')
   async createNewPost(@Req() req: any): Promise<PostEntity> {
     console.log(req.body.author);
@@ -68,7 +51,6 @@ export class PostsController {
     return deletedPost;
   }
 
-  @ApiBearerAuth()
   @UseGuards(RequiredAuthGuard)
   @Put('/:postid/like')
   async likePost(@Param('postid') postid: string, @Req() req) {
@@ -80,7 +62,6 @@ export class PostsController {
     return likedPost;
   }
 
-  @ApiBearerAuth()
   @UseGuards(RequiredAuthGuard)
   @Delete('/:postid/like')
   async unlikePost(@Param('postid') postid: string, @Req() req) {

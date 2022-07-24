@@ -1,23 +1,15 @@
-import { Body, Controller, Param, Post, Req } from '@nestjs/common';
-import { ApiProperty, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Controller, Post, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
-class LoginRequestBody {
-  @ApiProperty() email: string;
-  @ApiProperty() password: string;
-}
 class LoginResponseBody {
-  @ApiProperty() token: string;
+  token: string;
   constructor(token: string) {
     this.token = token;
   }
 }
-@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
-
-  @ApiResponse({ type: LoginResponseBody })
   @Post('/login')
   async login(@Req() req) {
     const { username, password } = req.body;

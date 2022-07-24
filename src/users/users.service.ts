@@ -17,26 +17,15 @@ export class UsersService {
     @InjectRepository(UserFollowingEntity)
     private userFollowRepo: Repository<UserFollowingEntity>,
   ) {}
-  /**
-   * @description find a user with a given username
-   * @returns {Promise<UserEntity>} user if found
-   */
+
   public async getUserByUsername(username: string): Promise<UserEntity> {
     return await this.userRepo.findOne({ where: { username } });
   }
 
-  /**
-   * @description find a user with a given userid
-   * @returns {Promise<UserEntity>} user if found
-   */
   public async getUserByUserId(userId: string): Promise<UserEntity> {
     return await this.userRepo.findOne({ where: { id: userId } });
   }
 
-  /**
-   * @description create new user with given details
-   * @returns {Promise<UserEntity>} user if created
-   */
   public async createUser(
     user: Partial<UserEntity>,
     password: string,
@@ -52,10 +41,6 @@ export class UsersService {
     return newUser;
   }
 
-  /**
-   * @description update a user with given details
-   * @returns {Promise<UserEntity>} user if updated
-   */
   public async updateUser(
     userId: string,
     newUserDetails: Partial<UserEntity>,
@@ -73,9 +58,6 @@ export class UsersService {
     return await this.userRepo.save(existingUser);
   }
 
-  /**
-   * create a user-user follow pairing
-   */
   public async createUserFollowRelation(
     follower: UserEntity,
     followeeId: string,
@@ -91,9 +73,6 @@ export class UsersService {
     return newFollow.followee;
   }
 
-  /**
-   * delete a user-user follow pairing
-   */
   public async deleteUserFollowRelation(
     follower: UserEntity,
     followeeId: string,
