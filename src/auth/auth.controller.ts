@@ -20,8 +20,8 @@ export class AuthController {
   @ApiResponse({ type: LoginResponseBody })
   @Post('/login')
   async login(@Req() req) {
-    const { email, password } = req.body;
-    const session = await this.authService.createNewSession(email, password);
+    const { username, password } = req.body;
+    const session = await this.authService.createNewSession(username, password);
     const user = await this.authService.getUserFromSessionToken(session.id);
     return {
       token: session.id,
@@ -31,7 +31,8 @@ export class AuthController {
 
   @Post('/validate')
   async validate(@Req() req) {
-    const user = await this.authService.getUserFromSessionToken(req.token);
+    console.log(req.body.token);
+    const user = await this.authService.getUserFromSessionToken(req.body.token);
     return user;
   }
 }

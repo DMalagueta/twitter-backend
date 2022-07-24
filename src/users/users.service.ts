@@ -1,46 +1,66 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
-import { PasswordEntity } from 'src/auth/passwords.entity';
 import { Repository } from 'typeorm';
+import { UserFollowingEntity } from './userfollowings.entity';
 import { UserEntity } from './users.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectRepository(UserEntity)
-    private usersRepository: Repository<UserEntity>,
+    @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
     private authService: AuthService,
+    @InjectRepository(UserFollowingEntity)
+    private userFollowRepo: Repository<UserFollowingEntity>,
   ) {}
-
-  /* FIND USER BY NAME */
+  /**
+   * @description find a user with a given username
+   * @returns {Promise<UserEntity>} user if found
+   */
   public async getUserByUsername(username: string): Promise<UserEntity> {
-    return await this.usersRepository.findOne({ where: { username } });
+    return await this.userRepo.findOne({ where: { username } });
   }
 
-  /* FIND USER BY ID */
-  public async getUserById(userId: string): Promise<UserEntity> {
-    return await this.usersRepository.findOne({ where: { id: userId } });
+  /**
+   * @description find a user with a given userid
+   * @returns {Promise<UserEntity>} user if found
+   */
+  public async getUserByUserId(userId: string): Promise<UserEntity> {
+    return await this.userRepo.findOne({ where: { id: userId } });
   }
 
-  /* CREATE USER */
+  /**
+   * @description create new user with given details
+   * @returns {Promise<UserEntity>} user if created
+   */
   public async createUser(
     user: Partial<UserEntity>,
     password: string,
   ): Promise<UserEntity> {
-    const newUser = await this.usersRepository.save(user);
+    const usernameAlreadyExists = await this.getUserByUsername(user.username);
+    if (usernameAlreadyExists)
+      throw new ConflictException('This username is already taken!');
+
+    const newUser = await this.userRepo.save(user);
 
     await this.authService.createPasswordForNewUser(newUser.id, password);
 
     return newUser;
   }
 
-  /* UPDATE USER */
+  /**
+   * @description update a user with given details
+   * @returns {Promise<UserEntity>} user if updated
+   */
   public async updateUser(
     userId: string,
     newUserDetails: Partial<UserEntity>,
   ): Promise<UserEntity> {
-    const existingUser = await this.usersRepository.findOne({
+    const existingUser = await this.userRepo.findOne({
       where: { id: userId },
     });
     if (!existingUser) {
@@ -50,6 +70,46 @@ export class UsersService {
     if (newUserDetails.avatar) existingUser.avatar = newUserDetails.avatar;
     if (newUserDetails.name) existingUser.name = newUserDetails.name;
 
-    return await this.usersRepository.save(existingUser);
+    return await this.userRepo.save(existingUser);
+  }
+
+  /**
+   * create a user-user follow pairing
+   */
+  public async createUserFollowRelation(
+    follower: UserEntity,
+    followeeId: string,
+  ) {
+    const followee = await this.getUserByUserId(followeeId);
+    if (!followee) {
+      throw new NotFoundException('User not found');
+    }
+    const newFollow = await this.userFollowRepo.save({
+      follower,
+      followee,
+    });
+    return newFollow.followee;
+  }
+
+  /**
+   * delete a user-user follow pairing
+   */
+  public async deleteUserFollowRelation(
+    follower: UserEntity,
+    followeeId: string,
+  ) {
+    const followee = await this.getUserByUserId(followeeId);
+    if (!followee) {
+      throw new NotFoundException('User not found');
+    }
+    const follow = await this.userFollowRepo.findOne({
+      where: { follower, followee },
+    });
+    if (follow) {
+      await this.userFollowRepo.delete(follow.id);
+      return followee;
+    } else {
+      throw new NotFoundException('No follow relationship found');
+    }
   }
 }

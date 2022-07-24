@@ -6,8 +6,6 @@ import { ApiTags } from '@nestjs/swagger';
 export class HashtagsController {
   @Get('/')
   getHashtags(): string {
-    //TODO : ADD LOGIC
-
     return 'hashtags';
   }
 

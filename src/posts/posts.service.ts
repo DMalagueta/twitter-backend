@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthService } from 'src/auth/auth.service';
+import { LikesEntity } from 'src/likes/likes.entity';
 import { LikesService } from 'src/likes/likes.service';
 import { UserEntity } from 'src/users/users.entity';
 import { Repository } from 'typeorm';
@@ -17,34 +18,20 @@ export class PostsService {
     private readonly authService: AuthService,
     @InjectRepository(PostEntity)
     private postsRepository: Repository<PostEntity>,
+    @InjectRepository(LikesEntity)
+    private likesRepository: Repository<LikesEntity>,
   ) {}
 
-  async getAllPosts(
-    authorId?: string,
-    hashtags?: string[] | null,
-  ): Promise<Array<PostEntity>> {
+  async getAllPosts(): Promise<Array<PostEntity>> {
     const queryBuilder = this.postsRepository
       .createQueryBuilder('posts')
       .leftJoinAndSelect('posts.author', 'author')
       .leftJoinAndSelect('posts.origPost', 'origPost')
       .addSelect('origPost.author')
       .leftJoinAndSelect('origPost.author', 'origPostAuthor')
-      .addSelect('replyTo.author')
-      .leftJoinAndSelect('replyTo.author', 'replyToAuthor');
+      .leftJoinAndSelect('posts.replyTo', 'replyTo');
 
-    if (authorId) {
-      queryBuilder.where('posts.author = :authorId', { authorId });
-    }
-
-    if (hashtags && hashtags.length > 0) {
-      // TODO:
-    }
-
-    return queryBuilder
-      .addSelect('posts.created_at')
-      .orderBy('posts.created_at', 'DESC')
-      .limit(100)
-      .getMany();
+    return queryBuilder.addSelect('posts.created_at').limit(100).getMany();
   }
 
   async getPost(id: string): Promise<PostEntity> {
@@ -60,6 +47,21 @@ export class PostsService {
     });
   }
 
+  async getUserPosts(userId: string): Promise<Array<PostEntity>> {
+    const queryBuilder = this.postsRepository
+      .createQueryBuilder('posts')
+      .leftJoinAndSelect('posts.author', 'author')
+      .leftJoinAndSelect('posts.origPost', 'origPost')
+      .addSelect('origPost.author')
+      .leftJoinAndSelect('posts.replyTo', 'replyTo');
+
+    return queryBuilder
+      .where('author.id = :userId', { userId })
+      .addSelect('posts.created_at')
+      .limit(100)
+      .getMany();
+  }
+
   async deletePost(id: string): Promise<boolean> {
     const deleteResult = await this.postsRepository.delete({ id });
     return deleteResult.affected === 1;
@@ -68,36 +70,11 @@ export class PostsService {
   async createPost(
     post: Partial<PostEntity>,
     author: UserEntity,
-    originalPostId: any,
-    replyToPostId: any,
   ): Promise<PostEntity> {
-    if (!post.text && !originalPostId) {
-      throw new BadRequestException('Post must contain text');
-    }
-
-    if (originalPostId && replyToPostId) {
-      throw new BadRequestException('Repost');
-    }
-
+    console.log(post, author);
     const newPost = new PostEntity();
     newPost.text = post.text;
     newPost.author = author;
-
-    if (originalPostId) {
-      const origPost = await this.postsRepository.findOne(originalPostId);
-      if (!origPost) {
-        throw new NotFoundException('Original post not found');
-      }
-      newPost.origPost = origPost;
-    }
-
-    if (replyToPostId) {
-      const replyTo = await this.postsRepository.findOne(replyToPostId);
-      if (!replyTo) {
-        throw new NotFoundException('Original Post not found');
-      }
-      newPost.replyTo = replyTo;
-    }
 
     const savedPost = await this.postsRepository.save(newPost);
     return savedPost;
@@ -108,6 +85,15 @@ export class PostsService {
   }
   async unlikePost(token: string, postId: string): Promise<boolean> {
     return await this.likeUnlikePostHelper(token, postId, 'unlike');
+  }
+
+  async likedPosts(postId: string) {
+    return this.postsRepository
+      .createQueryBuilder()
+      .update('posts')
+      .set({ likeCount: () => 'like_count + 1' })
+      .where('id = :postId', { postId })
+      .execute();
   }
 
   private async likeUnlikePostHelper(

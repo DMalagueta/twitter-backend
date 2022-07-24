@@ -6,7 +6,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcrypt';
 import { UserEntity } from 'src/users/users.entity';
-import { UsersRepository } from 'src/users/users.repository';
 import { Repository } from 'typeorm';
 import { PasswordEntity } from './passwords.entity';
 import { SessionsEntity } from './sessions.entity';
@@ -15,7 +14,7 @@ import { SessionsEntity } from './sessions.entity';
 export class AuthService {
   constructor(
     @InjectRepository(UserEntity)
-    private userRepository: UsersRepository,
+    private userRepository: Repository<UserEntity>,
     @InjectRepository(PasswordEntity)
     private passwordRepository: Repository<PasswordEntity>,
     @InjectRepository(SessionsEntity)

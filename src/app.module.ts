@@ -11,20 +11,20 @@ import { HashtagsModule } from './hashtags/hashtags.module';
 import { AuthModule } from './auth/auth.module';
 import { PasswordEntity } from './auth/passwords.entity';
 import { LikesModule } from './likes/likes.module';
+import { LikesEntity } from './likes/likes.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      username: 'diogo',
-      password: '12345',
+      username: 'root',
+      password: 'root',
       database: 'talkline',
-      synchronize: true,
       logger: 'advanced-console',
       logging: 'all',
-      entities: [UserEntity, PostEntity, PasswordEntity],
-      /* entities: [join(__dirname, '..', '**', '*.entity.js')],  */
+      entities: [UserEntity, PostEntity, PasswordEntity, LikesEntity],
       autoLoadEntities: true,
+      synchronize: true,
     }),
     UsersModule,
     PostsModule,

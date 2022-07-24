@@ -7,6 +7,6 @@ export class AppController {
 
   @Get('/')
   getHello(): string {
-    return 'Hey there';
+    return 'TALKLINE API';
   }
 }

@@ -1,4 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { PostEntity } from 'src/posts/posts.entity';
 import { UserEntity } from 'src/users/users.entity';
 import { Repository } from 'typeorm';
@@ -6,7 +7,10 @@ import { LikesEntity } from './likes.entity';
 
 @Injectable()
 export class LikesService {
-  constructor(private likesRepository: Repository<LikesEntity>) {}
+  constructor(
+    @InjectRepository(LikesEntity)
+    private likesRepository: Repository<LikesEntity>,
+  ) {}
 
   async likePost(post: PostEntity, user: UserEntity): Promise<boolean> {
     const alreadyLiked = await this.getLikedPost(post.id, user.id);

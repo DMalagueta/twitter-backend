@@ -1,29 +1,23 @@
 import {
-  Controller,
-  Get,
-  Param,
+  Body,
   Delete,
+  Param,
   Post,
   Put,
   Query,
-  Body,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiProperty, ApiPropertyOptional, ApiTags } from '@nestjs/swagger';
-import { User } from 'src/auth/auth.decorator';
-import { UserEntity } from 'src/users/users.entity';
+import { Controller, Get } from '@nestjs/common';
+import {
+  ApiBearerAuth,
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiTags,
+} from '@nestjs/swagger';
+import { RequiredAuthGuard } from 'src/auth/auth.guard';
 import { PostEntity } from './posts.entity';
 import { PostsService } from './posts.service';
-
-class PostDetailsQueryParams {
-  @ApiPropertyOptional() authorId: string;
-  @ApiPropertyOptional() hashtag: string[];
-}
-
-class PostCreateRequestBody {
-  @ApiProperty() text: string;
-  @ApiPropertyOptional() originalPostId: string;
-  @ApiPropertyOptional() replyToPostId: string;
-}
 
 @ApiTags('posts')
 @Controller('posts')
@@ -31,43 +25,71 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   @Get('/')
-  async getAllPosts(
-    @Query() query: PostDetailsQueryParams,
-  ): Promise<PostEntity[]> {
-    return await this.postsService.getAllPosts(query.authorId);
+  async getAllPosts(): Promise<PostEntity[]> {
+    return await this.postsService.getAllPosts();
   }
 
-  @Get('/:postid')
-  async getPostDetails(@Param('postId') postId: string): Promise<PostEntity> {
-    return await this.postsService.getPost(postId);
+  @Get('/:userId')
+  async getUserPosts(@Param() userId: any): Promise<PostEntity[]> {
+    console.log(userId);
+    return await this.postsService.getUserPosts(userId.userId);
   }
 
+  @ApiBearerAuth()
   @Post('/')
-  async createNewPost(
-    @User() author: UserEntity,
-    @Body() post: PostCreateRequestBody,
-  ): Promise<PostEntity> {
+  async createNewPost(@Req() req: any): Promise<PostEntity> {
+    console.log(req.body.author);
     const createdPost = await this.postsService.createPost(
-      post,
-      author,
-      post.originalPostId,
-      post.replyToPostId,
+      req.body,
+      req.body.author,
     );
     return createdPost;
   }
 
-  @Delete('/:postid')
-  deletePost(@Param('postid') postid: string): string {
-    return `delete postid ${postid}`;
+  @Post('/likePost')
+  async likePosts(@Req() req: any) {
+    const createdLike = await this.postsService.likePost(
+      req.body.token,
+      req.body.post,
+    );
+    /* if (createdLike) { */
+    await this.postsService.likedPosts(req.body.post);
+    return createdLike;
   }
 
+  @Delete('/:postId')
+  async deletePost(@Param('postId') postId: string) {
+    console.log(postId);
+    const deletedPost = {
+      id: postId,
+      deleted: await this.postsService.deletePost(postId),
+    };
+
+    return deletedPost;
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(RequiredAuthGuard)
   @Put('/:postid/like')
-  likePost(@Param('postid') postid: string): string {
-    return `liked ${postid}`;
+  async likePost(@Param('postid') postid: string, @Req() req) {
+    const token = (req.headers.authorization as string).replace('Bearer ', '');
+    const likedPost = {
+      postId: postid,
+      liked: await this.postsService.likePost(token, postid),
+    };
+    return likedPost;
   }
 
-  @Delete('/:postid/unlike')
-  unlikePost(@Param('postid') postid: string): string {
-    return `unliked ${postid}`;
+  @ApiBearerAuth()
+  @UseGuards(RequiredAuthGuard)
+  @Delete('/:postid/like')
+  async unlikePost(@Param('postid') postid: string, @Req() req) {
+    const token = (req.headers.authorization as string).replace('Bearer ', '');
+    const unlikedPost = {
+      postId: postid,
+      unliked: await this.postsService.unlikePost(token, postid),
+    };
+
+    return unlikedPost;
   }
 }
